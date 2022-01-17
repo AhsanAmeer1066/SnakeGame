@@ -1,42 +1,43 @@
 /*
- * Description: Code for single player panel
+ * Description: Code for multiplayer panel
  */
 
 // Importing of libraries needed for the program
 import java.awt.*;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.*;
-
 import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.swing.Timer;
 
-import sun.jvm.hotspot.ui.ObjectHistogramPanel;
 
 // Class extends to JPanel and implements the functionality of ActionListener
-public class GameOperations extends JPanel implements ActionListener {
+public class GameOperations_Multiplayer extends JPanel implements ActionListener {
 	
 	// Declares Variables
 	public final int snake_size = (800*600)/(25*25); // Sets largest size for snake body
 	public int initialBody = 5; // Sets the size of the body starting out
+	public int initialBody2 = 5; // Sets the size of the body starting out
 	public int score = 0; // Sets the score
-	public String users; // Sets users
+	public int score2 = 0; // Sets the score for the other snake
+	public int winner = 0;
 	public int fruitX, fruitY; // Sets variables for x and y coordinates for fruits
 	public int movement = 1; // variable for moving
+	public int mover = 5; // variable for moving second snake
 	public int snake_x[] = new int[snake_size]; // X coordinates for snake
 	public int snake_y[] = new int[snake_size]; // Y Coordinates for snake
+	public int snake_x2[] = new int[snake_size]; // X coordinates for snake2
+	public int snake_y2[] = new int[snake_size]; // Y Coordinates for snake2
 	public boolean running = false; // Allows program to run
 	private Random random = new Random(); // Sets randomizer variable
 	private Timer timer = new Timer(75, this); // Sets timer to control snake speed
 	
 	// GameOperations Constructor
-	GameOperations(){
+	GameOperations_Multiplayer(){
 		this.setFocusable(true); // Allows snake to move (Focuses on the snake)
 		this.setSize(new Dimension(800,600));  // Sets size of game panel
 		this.addKeyListener(new InputReceiver()); // Adds keylistener to move the snake
@@ -56,53 +57,11 @@ public class GameOperations extends JPanel implements ActionListener {
 	 */
 	
 	public void starting() {
-		getUser(); // gets user name for user
+		running = true; // Sets running to true
 		stop();
 		randomFruits(); // Calls random fruit method
-		running = true; // Sets running to true
 		timer.start(); // Starts timer
 	
-	}
-	
-	
-	/**
-	 * Description: This method collects username
-	 * 
-	 * @param N/A
-	 * @return Void
-	 * 
-	 */
-	
-	public void getUser() {
-		
-		// Creates Jframe
-		JFrame temp = new JFrame();
-		users = JOptionPane.showInputDialog(temp,"Enter your Username");  // Prompts user for username
-		
-		// Checks if user hit cancel
-		if (users == null) {
-			 JOptionPane.showMessageDialog(temp,"You must enter a Username!","Alert",JOptionPane.WARNING_MESSAGE);
-			 getUser();
-		}
-		
-		// Checks if username is spaces
-		else if(users.trim() == "") {
-			JOptionPane.showMessageDialog(temp,"Please enter a proper Username!!","Alert",JOptionPane.WARNING_MESSAGE);
-			getUser();
-		}
-		
-		//Checks if username is nothing 
-		else if(users.equals("")) {
-			JOptionPane.showMessageDialog(temp,"Please enter a proper Username!!","Alert",JOptionPane.WARNING_MESSAGE);
-			getUser();
-			
-		}
-		
-		// Adds username
-		else {
-		}
-		
-		
 	}
 	
 	/**
@@ -112,7 +71,6 @@ public class GameOperations extends JPanel implements ActionListener {
 	 * @return Pauses game
 	 * 
 	 */
-	
 	
 	public void stop() {
 		
@@ -169,31 +127,25 @@ public class GameOperations extends JPanel implements ActionListener {
 		g.setFont(new Font("Algerian", Font.BOLD, 75)); // Sets font, style and size of text
 		g.drawString("GAME OVER", 175, 300); // Finally draws the string at (175,300)
 	
-		// Outputs score at death
-		g.setColor(Color.ORANGE); // Sets color of game over to orange
-		g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, style and size of text
-		g.drawString("Score: " + score,350, 400); // Finally draws the string at (350,400)
+		// Outputs winner 
+		if (winner == 0) {
+			g.setColor(Color.ORANGE); // Sets color of game over to orange
+			g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, style and size of text
+			g.drawString("TIE!",350, 400); // Finally draws the string at (350,400)
+		}
+				
+		// Outputs winner 
+		if (winner == 1) {
+			g.setColor(Color.ORANGE); // Sets color of game over to orange
+			g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, style and size of text
+			g.drawString("SNAKE 1 WINS",275, 400); // Finally draws the string at (350,400)
+		}
 		
-		// Adds score and user
-		try {
-			
-			FileWriter file = new FileWriter("Usernames.txt", true); // Sets filewriter to true so it doesnt overwrite
-			BufferedWriter writer = new BufferedWriter(file); // Declares reader for Usernames.txt
-
-			writer.write(users + "-"); // Writes username
-			writer.close();
-			
-			FileWriter file2 = new FileWriter("Scores.txt", true); // Sets filewriter to true so it doesnt overwrite
-			BufferedWriter writer2 = new BufferedWriter(file2); // Declares reader for Scores.txt
-
-			writer2.write(score + "-"); // Writes score
-			writer2.close();
-			
+		if (winner == 2) {
+			g.setColor(Color.ORANGE); // Sets color of game over to orange
+			g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, style and size of text
+			g.drawString("SNAKE 2 WINS",275, 400); // Finally draws the string at (350,400)
 		}
-		catch (IOException iox){ //  Catches exception
-			System.out.println("ERROR!");
-		}
-	
 		
 		
 		// Creates return to main menu button
@@ -246,6 +198,14 @@ public class GameOperations extends JPanel implements ActionListener {
 			randomFruits(); // Generates another fruit for the player to get
 		}
 		
+		// Creates an if statement that checks if the snake2 has eaten a fruit
+		if ((snake_x2[0] == fruitX) && (snake_y2[0]+300 == fruitY)) // Checks if coordinates are the same
+		{
+			initialBody2++; // Increases the body by one unit
+			score2++; // Increases the score by 1
+			randomFruits(); // Generates another fruit for the player to get
+		}
+		
 		// Creates for loop that checks if the head of the snake hits it's own body
 		for(int i = initialBody; i >= 1; i--) {
 			
@@ -254,15 +214,60 @@ public class GameOperations extends JPanel implements ActionListener {
 				
 				running = false; // Sets running to false
 				timer.stop(); // Stops timer
+				System.out.println(1);
+				winner = 2;
 				
 			}
+			
+			if((snake_x2[0] == snake_x[i]) && (snake_y2[0]+300 == snake_y[i])) {
+				
+				running = false; // Sets running to false
+				timer.stop(); // Stops timer
+				System.out.println(1);
+				winner = 1;
+
+			}
 		}
+		
+		// Checks for head collision
+		if ((snake_y[0]== snake_y2[0]+300) && (snake_x[0] == snake_x2[0])){
+			
+			running = false; // Sets running to false
+			timer.stop(); // Stops timer
+			System.out.println(1);
+		}
+		
+		// Creates for loop that checks if the head of the snake hits it's own body
+		for(int i = initialBody2; i >= 1; i--) {
+
+			if((snake_x2[0] == snake_x2[i]) && (snake_y2[0] == snake_y2[i]))// Checks if x,y coordinates of head are the same as the body
+			{
+
+				running = false; // Sets running to false
+				timer.stop(); // Stops timer
+				System.out.println(1);
+				winner = 1;
+
+			}
+			
+			if((snake_y[0] == snake_y2[i]+300) && (snake_x[0] == snake_x2[i])) {
+				running = false; // Sets running to false
+				timer.stop(); // Stops timer
+				System.out.println(1);
+				winner = 2;
+			}
+		}
+				
+		
+		
 		
 		// Checks if snake head touched the left wall
 		if (snake_x[0] < 0) {
 			
 			running = false; // Sets running to false
 			timer.stop(); // Stops timer
+			System.out.println(2);
+			winner = 2;
 			
 		}
 		
@@ -271,6 +276,8 @@ public class GameOperations extends JPanel implements ActionListener {
 			
 			running = false; // Sets running to false
 			timer.stop(); // Stops timer
+			System.out.println(3);
+			winner = 2;
 			
 		}
 		
@@ -279,6 +286,8 @@ public class GameOperations extends JPanel implements ActionListener {
 			
 			running = false; // Sets running to false
 			timer.stop(); // Stops timer
+			System.out.println(4);
+			winner = 2;
 			
 		}
 		
@@ -287,7 +296,47 @@ public class GameOperations extends JPanel implements ActionListener {
 			
 			running = false; // Sets running to false
 			timer.stop(); // Stops timer
+			System.out.println(5);
+			winner = 2;
+		}
+		
+		// Checks if snake head touched the left wall
+		if (snake_x2[0] < 0) {
 			
+			running = false; // Sets running to false
+			timer.stop(); // Stops timer
+			System.out.println(6);
+			winner = 1;
+		}
+
+		// Checks if snake head touched the right wall
+		if (snake_x2[0] >= 800) {
+
+			running = false; // Sets running to false
+			timer.stop(); // Stops timer
+			System.out.println(7);
+			winner = 1;
+
+		}
+
+		// Checks if snake head touched the top 
+		if (snake_y2[0]+300 < 0) {
+
+			running = false; // Sets running to false
+			timer.stop(); // Stops timer
+			System.out.println(8);
+			winner = 1;
+
+		}
+
+		// Checks if snake head touched the bottom
+		if (snake_y2[0]+300 >= 575) {
+
+			running = false; // Sets running to false
+			timer.stop(); // Stops timer
+			System.out.println(9);
+			winner = 1;
+
 		}
 		
 	}
@@ -304,10 +353,6 @@ public class GameOperations extends JPanel implements ActionListener {
 		
 		fruitX = random.nextInt((int)(800/50))*25; // Generates new x coordinates within the panel
 		fruitY = random.nextInt((int)(600/50))*25; // Generates new y coordinates within the panel
-		if (fruitX < 50 || fruitY < 50) {
-			randomFruits();
-		}
-
 	
 	}
 
@@ -352,10 +397,37 @@ public class GameOperations extends JPanel implements ActionListener {
 				
 			}
 			
+			// Creates a for loop to create the second snakes body
+			for(int i = 0; i < initialBody2; i++) {
+
+				// Creates an if statement for the head
+				if(i == 0) {
+
+					g.setColor(Color.RED); // Sets snake to blue
+					g.drawRect(snake_x2[0], snake_y2[0]+300, 25, 25); // Draws head outline
+					g.fillRect(snake_x2[0], snake_y2[0]+300, 25, 25); // Fills in head
+					repaint(); // Repaints every time the head moves
+
+				}
+
+				// Creates else statement for body parts
+				else {
+
+					g.setColor(Color.MAGENTA); // Sets body color to cyan
+					g.drawOval(snake_x2[i], snake_y2[i]+300, 25, 25); // Draws an oval
+					repaint(); // Repaints every time body moves
+				}
+
+			}
+			
 			// Keeps Score
-			g.setColor(Color.ORANGE); // Sets color to orange
+			g.setColor(Color.BLUE); // Sets color to orange
 			g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, size and style
-			g.drawString("SCORE: " + score, 330, 40); // Draws "Score: " at (330,40)
+			g.drawString("PLAYER 1: " + score, 25, 560); // Draws "Score: "
+			
+			g.setColor(Color.RED); // Sets color to orange
+			g.setFont(new Font("Times New Roman", Font.BOLD, 30)); // Sets font, size and style
+			g.drawString("PLAYER 2: " + score2, 600, 560); // Draws "Score: " 
 			
 			
 		}
@@ -387,6 +459,17 @@ public class GameOperations extends JPanel implements ActionListener {
 			
 		}
 		
+		// Creates a for loop moves the rest of the body 2 according to where the head 2 moves
+		for (int i = initialBody2; i>=1 ; i--) {
+
+			// This code shifts the body parts into the parts in front of them
+			snake_x2[i] = snake_x2[i-1]; // Sets the current body part's x coords to the part in front of it
+			snake_y2[i] = snake_y2[i-1]; // Sets the current body part's y coords to the part in front of it
+
+		}
+		
+		
+		
 		// Creates if statement that moves head of snake (the for loop above moves the body)
 		if (true) {
 			
@@ -408,6 +491,29 @@ public class GameOperations extends JPanel implements ActionListener {
 			// Creates else if statement that moves head left
 			else if (movement == 2) {
 				snake_x[0] = snake_x[0] - 25; //Subtracts x coords by 25
+			}
+			
+			// Creates if statement that moves head up
+			if (mover == 7) {
+				snake_y2[0] = snake_y2[0]-25; // Subtracts y coords by 25
+				System.out.println(20);
+			}
+
+			// Creates else if statement that moves head down
+			else if (mover == 8) {
+				snake_y2[0] = snake_y2[0]+25; //Adds y coords by 25
+				System.out.println(30);
+			}
+
+			// Creates else if statement that moves head right
+			else if (mover == 5) {
+				snake_x2[0] = snake_x2[0] + 25; //Adds x coords by 25
+			}
+
+			// Creates else if statement that moves head left
+			else if (mover == 6) {
+				snake_x2[0] = snake_x2[0] - 25; //Subtracts x coords by 25
+
 			}
 			
 		}
@@ -477,6 +583,38 @@ public class GameOperations extends JPanel implements ActionListener {
 				if (movement != 3)  // Creates if statement that checks if the snake is going up
 				{
 					movement = 4; // Sets direction to down
+				} 
+			}
+			 
+			// Creates if statement to check if a key is pressed
+			if(KeyEvent.VK_A == e.getKeyCode()) {
+				if (mover != 5) // Creates if statement that checks if the snake is going right
+				{
+					mover = 6; // Sets direction to left
+				}
+			}
+
+			// Creates if statement to check if d is pressed
+			else if(KeyEvent.VK_D == e.getKeyCode()) {
+				if (mover != 6) // Creates if statement that checks if the snake is going left
+				{
+					mover = 5; // Sets direction to right
+				}
+			}
+
+			// Creates if statement to check if w is pressed
+			else if (KeyEvent.VK_W == e.getKeyCode()) {
+				if (mover != 8) // Creates if statement that checks if the snake is going down
+				{
+					mover = 7; // Sets direction to up
+				}
+			}
+
+			// Creates if statement to check if s is pressed
+			else if (KeyEvent.VK_S == e.getKeyCode()) {
+				if (mover != 7)  // Creates if statement that checks if the snake is going up
+				{
+					mover = 8; // Sets direction to down
 				} 
 			}
 			

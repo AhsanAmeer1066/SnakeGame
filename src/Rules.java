@@ -3,6 +3,7 @@
  */
 
 import java.awt.Color;
+
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.*;
@@ -39,10 +40,10 @@ public class Rules extends JPanel{
 			BufferedReader reader = new BufferedReader(new FileReader("Rules.txt")); // Declares reader for rules.txt
 	
 			// Creates for loop that iterates through every line of the rules
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < 7; i++) {
 				
 				// Creates for loop to shift each line down
-				for (int k = -20; k <= 200; k += 50) {
+				for (int k = -20; k <= 300; k += 50) {
 					
 					if(k == 0) {
 						ruleLine = reader.readLine(); // Reads from txt file
