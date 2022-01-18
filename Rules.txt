@@ -1,0 +1,7 @@
+RULES: SNAKE GAME
+1. If the snake hits the walls of the window you lose.
+2. If the snake hits it's own body you lose.
+3. Eat the fruits to increase the size of the snake and increase your score.
+4. In multiplayer, the last snake standing wins.
+5. The blue snake is player 1, and is controlled by arrow keys.
+6. The red snake is player 2, and is controlled by WASD keys.
